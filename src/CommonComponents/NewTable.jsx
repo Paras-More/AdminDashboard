@@ -1,10 +1,12 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
+import { FaFilter } from 'react-icons/fa'; // Import the filter icon
+
 function NewTable() {
   const initialData = [
     {
       ID: "53d7c076ab0d40048c766bf6c930a102",
-      Username: "TEST",
+      Username: "TEST1",
       AppName: "TEST APP NAME",
       ApiSecret: "SECRET",
       APIKey: "JNPHdc06UUmwOO/eA6uBHQ==",
@@ -18,7 +20,7 @@ function NewTable() {
     },
     {
       ID: "81c4f104b70146b5be5c78951fca11cb",
-      Username: "TEST",
+      Username: "TEST2",
       AppName: "TEST APP NAME - 2",
       ApiSecret: "SECRET",
       APIKey: "JNPHdc06UUmwOO/eA6uBHQ==",
@@ -32,7 +34,7 @@ function NewTable() {
     },
     {
       ID: "bb6f3fc4bbd04f7c9fb93b52a040986e",
-      Username: "TEST",
+      Username: "TEST3",
       AppName: "TEST APP NAME - 3",
       ApiSecret: "SECRET",
       APIKey: "5JbOdMNsy5vaek8lQBrKRw==",
@@ -45,7 +47,11 @@ function NewTable() {
       WebhookURL: "5JbOdMNsy5vaek8lQBrKRw==",
     },
   ];
-
+  const [sortField,setSortField] = useState("")
+  const[sortOrder,setSortOrder] = useState('asc')
+  const[filterField,setfilterField] = useState("")
+  const[filterText,setfilterText] = useState("")
+  const[SearchNotFound,setSearchNotFound] = useState(false)
   const optionArray = ["ACTIVE", "PENDING", "EXPIRED", "SUSPENDED"];
   const [selectedRow,setSelectedRow] = useState({})
   const [data, setData] = useState(initialData);
@@ -61,41 +67,45 @@ function NewTable() {
 
   function handleSaveRow(rowId,rowIndex){
     alert("calling api")
-    console.log(rowIndex);
-
-    
-    
     const copiedData = [...data];
     console.log(copiedData[rowIndex]);
     copiedData[rowIndex] = selectedRow;
-    console.log(copiedData);
-    
     setData(copiedData)
     setSelectedRow({})
     
   }
+
+  function handleSort(Column){
+    const order = sortOrder === 'asc' ? 1 : -1;
+    const sortedArray = [...initialData].sort((a,b)=>{
+      const comparison = a[Column] > b[Column] ? -1 : (a[Column] < b[Column] ? 1 : 0);
+      return comparison * order;
+    })
+    setSortField(Column)
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    setData(sortedArray)
+  }
+
+  function handleFilter(Column){      
+      setfilterField(filterField === "" || filterField !== Column ? Column : "");   
+  }
    
   useEffect(()=>{
-    console.log(selectedRow);
-    
-    console.log(selectedRow['ID']);
-  },[selectedRow])
+    // console.log("sortOrder",sortOrder);
+  },[sortOrder])
 
   function handleEditRow(rowID,row){
     setSelectedRow(row)
   }
   useEffect(() => {
-    console.log(data);
-  }, [data]);
+    // console.log(data);
+    console.log(filterText);
+  }, [filterText]);
 
   return (
     <div className="p-4">
       <h1>Data Table</h1>
-      <input
-        type="text"
-        placeholder="Filter by username , Appname , or Status"
-        className="w-full p-4"
-      />
+
       <table className="w-full table-auto  border-collapse border border-gray-300">
        <thead>
           <tr>
@@ -103,7 +113,50 @@ function NewTable() {
             {
                 columns?.map((heading,index)=>{
                     return(
-                        <th className="border p-2 cursor-pointer" key={index}>{heading}</th>
+                        <th className="border bg-red-200  p-2 cursor-pointer" key={index}>
+                          <div className="flex items-center relative justify-between bg-green-500">
+                            <div className="w-full" onClick={()=>handleSort(heading)}>
+                            {heading}
+                            {sortField === heading && (sortOrder === 'asc'? "↓" :"↑")}
+                            </div>
+                            <div className="p-1" onClick={()=>handleFilter(heading)}>
+                            {<FaFilter/>}
+                            </div>
+                            {
+                              filterField === heading &&   
+                              <div className="absolute z-50 top-6 right-0 w-[full] max-w-[280px] h-max bg-white shadow-md p-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <input type="text" placeholder="Search" className="w-full p-1 text-sm border border-gray-300 rounded-md" onChange={(e)=>setfilterText(e.target.value)}/>
+                              </div>
+                              <div className="flex items-center mb-3">
+                                <input type="checkbox" id="selectAll" className="h-4 w-4" />
+                                <label htmlFor="selectAll" className="ml-2 text-sm">Select All</label>
+                              </div>
+                              <div className="flex flex-col max-h-60 overflow-y-auto px-2">
+                                {
+                                  [...data].map((row, rowIndex) => {                                   
+                                    return (
+                                      <div key={row['ID']} className="flex items-center justify-between py-1">
+                                        {
+                                          row[heading].toLowerCase().includes(filterText) && <><input type="checkbox" id={`checkbox-${row['ID']}`}  className="h-4 w-4"  />
+                                        <label className="ml-2 text-sm" htmlFor={`checkbox-${row['ID']}`} >{row[heading]}</label></> 
+                                        }
+                                      </div>
+                                    );
+                                  })
+                                }
+                                {
+                                  
+                                }
+                              </div>
+                                <div className="flex justify-end mt-3">
+                                  <button className="bg-blue-500 text-white text-sm px-3 py-1 rounded mr-2">OK</button>
+                                  <button className="bg-gray-300 text-black text-sm px-3 py-1 rounded" onClick={()=>setfilterField("")}>Cancel</button>
+                                </div>
+                              </div>
+                             }
+                          </div>
+                        </th>
                     )
                 })
             }

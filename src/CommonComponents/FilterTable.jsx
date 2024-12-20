@@ -49,7 +49,9 @@ const TableWithFilterAndSort = () => {
     setFilterText(e.target.value);
   };
   // Function to handle sorting
-  const handleSort = (field) => {
+  const handleSort = (field) => 
+    // console.log(field);
+    {
     const order = sortField === field && sortOrder === "asc" ? "desc" : "asc";
     const sortedData = [...data].sort((a, b) => {
       if (a[field] < b[field]) return order === "asc" ? -1 : 1;
@@ -97,6 +99,7 @@ const TableWithFilterAndSort = () => {
         row[key].toLowerCase().includes(filterText.toLowerCase())
     )
   );
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Data Table</h1>
