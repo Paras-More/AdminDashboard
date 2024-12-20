@@ -56,6 +56,7 @@ function NewTable() {
   const [selectedRow,setSelectedRow] = useState({})
   const [data, setData] = useState(initialData);
   const columns = Object.keys(data[0]);
+  let selectedRowIdArray = [];
 
   function setDateFormat(date) {}
 
@@ -86,8 +87,32 @@ function NewTable() {
     setData(sortedArray)
   }
 
-  function handleFilter(Column){      
+  function openFilterBox(Column){  
+    console.log(Column);
       setfilterField(filterField === "" || filterField !== Column ? Column : "");   
+      console.log("10");
+      setfilterText("")
+      
+  }
+  function onCheckboxSelect(rowId,isChecked){
+    console.log(rowId,isChecked);
+    if(isChecked){
+      selectedRowIdArray.push(rowId)
+    }else{
+      selectedRowIdArray = selectedRowIdArray.filter(id => id !== rowId)
+    }    
+
+  }
+
+  function handleFilterApply(){
+     
+      const filteredArray = data.filter((row,rowIndex)=>{
+            return selectedRowIdArray.includes(row['ID'])
+      })
+
+      setData(filteredArray)
+      setfilterField("")
+      
   }
    
   useEffect(()=>{
@@ -119,7 +144,7 @@ function NewTable() {
                             {heading}
                             {sortField === heading && (sortOrder === 'asc'? "↓" :"↑")}
                             </div>
-                            <div className="p-1" onClick={()=>handleFilter(heading)}>
+                            <div className="p-1" onClick={()=>openFilterBox(heading)}>
                             {<FaFilter/>}
                             </div>
                             {
@@ -134,23 +159,37 @@ function NewTable() {
                               </div>
                               <div className="flex flex-col max-h-60 overflow-y-auto px-2">
                                 {
-                                  [...data].map((row, rowIndex) => {                                   
-                                    return (
-                                      <div key={row['ID']} className="flex items-center justify-between py-1">
-                                        {
-                                          row[heading].toLowerCase().includes(filterText) && <><input type="checkbox" id={`checkbox-${row['ID']}`}  className="h-4 w-4"  />
-                                        <label className="ml-2 text-sm" htmlFor={`checkbox-${row['ID']}`} >{row[heading]}</label></> 
-                                        }
-                                      </div>
-                                    );
+                                  (()=>{
+                                    let hasResuls = false;
+                                    const results =   [...data].map((row, rowIndex) => {      
+                                        if(`${typeof(row[heading]) === 'boolean' ? row[heading].toString() : row[heading]}`.toLowerCase().includes(filterText.toLowerCase())){
+                                          hasResuls = true
+                                          return (
+                                            <div key={row['ID']} className="flex items-center justify-between py-1">
+                                              {
+                                                <><input type="checkbox" id={`checkbox-${row['ID']}`} 
+                                                onChange={(e)=>onCheckboxSelect(row['ID'],e.target.checked)}  
+                                                className="h-4 w-4"  />
+                                              <label className="ml-2 text-sm" htmlFor={`checkbox-${row['ID']}`} >{typeof(row[heading]) === 'boolean' ? row[heading].toString() : row[heading]}</label></> 
+                                              }
+                                            </div>
+                                          );
+                                        } else{
+                                          return null;
+                                        }                           
+                                    
                                   })
-                                }
-                                {
-                                  
+                                  return(
+                                    <>
+                                    {results}
+                                    {!hasResuls && <span className="text-sm">No Results found</span>}
+                                    </>
+                                  )
+                                  })() 
                                 }
                               </div>
                                 <div className="flex justify-end mt-3">
-                                  <button className="bg-blue-500 text-white text-sm px-3 py-1 rounded mr-2">OK</button>
+                                  <button className="bg-blue-500 text-white text-sm px-3 py-1 rounded mr-2" onClick={handleFilterApply}>apply</button>
                                   <button className="bg-gray-300 text-black text-sm px-3 py-1 rounded" onClick={()=>setfilterField("")}>Cancel</button>
                                 </div>
                               </div>
