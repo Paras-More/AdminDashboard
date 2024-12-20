@@ -51,11 +51,11 @@ function NewTable() {
   const[sortOrder,setSortOrder] = useState('asc')
   const[filterField,setfilterField] = useState("")
   const[filterText,setfilterText] = useState("")
-  const[SearchNotFound,setSearchNotFound] = useState(false)
+  const[isAllSelected,setIsAllSelected] = useState(false)
   const optionArray = ["ACTIVE", "PENDING", "EXPIRED", "SUSPENDED"];
   const [selectedRow,setSelectedRow] = useState({})
   const [data, setData] = useState(initialData);
-  const columns = Object.keys(data[0]);
+  const columns = Object.keys(initialData[0]);
   let selectedRowIdArray = [];
 
   function setDateFormat(date) {}
@@ -65,7 +65,6 @@ function NewTable() {
     updatedData[key] = value;
     setSelectedRow(updatedData);
   };
-
   function handleSaveRow(rowId,rowIndex){
     alert("calling api")
     const copiedData = [...data];
@@ -75,7 +74,6 @@ function NewTable() {
     setSelectedRow({})
     
   }
-
   function handleSort(Column){
     const order = sortOrder === 'asc' ? 1 : -1;
     const sortedArray = [...initialData].sort((a,b)=>{
@@ -86,13 +84,9 @@ function NewTable() {
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     setData(sortedArray)
   }
-
   function openFilterBox(Column){  
-    console.log(Column);
       setfilterField(filterField === "" || filterField !== Column ? Column : "");   
-      console.log("10");
-      setfilterText("")
-      
+      setfilterText("");  
   }
   function onCheckboxSelect(rowId,isChecked){
     console.log(rowId,isChecked);
@@ -103,33 +97,27 @@ function NewTable() {
     }    
 
   }
-
   function handleFilterApply(){
-     
-      const filteredArray = data.filter((row,rowIndex)=>{
-            return selectedRowIdArray.includes(row['ID'])
+    if(selectedRowIdArray.length !== 0){
+      const filteredArray = initialData.filter((row,rowIndex)=>{
+        return selectedRowIdArray.includes(row['ID'])
       })
-
       setData(filteredArray)
       setfilterField("")
+      selectedRowIdArray = []
+    }else{
+      alert("Please select any value or cancel")
+    }
       
   }
-   
-  useEffect(()=>{
-    // console.log("sortOrder",sortOrder);
-  },[sortOrder])
-
   function handleEditRow(rowID,row){
     setSelectedRow(row)
   }
-  useEffect(() => {
-    // console.log(data);
-    console.log(filterText);
-  }, [filterText]);
+
 
   return (
     <div className="p-4">
-      <h1>Data Table</h1>
+      <h1>Admin Dashboard</h1>
 
       <table className="w-full table-auto  border-collapse border border-gray-300">
        <thead>
@@ -154,20 +142,21 @@ function NewTable() {
                                 <input type="text" placeholder="Search" className="w-full p-1 text-sm border border-gray-300 rounded-md" onChange={(e)=>setfilterText(e.target.value)}/>
                               </div>
                               <div className="flex items-center mb-3">
-                                <input type="checkbox" id="selectAll" className="h-4 w-4" />
+                                <input type="checkbox" id="selectAll" className="h-4 w-4" onChange={(e)=>setIsAllSelected(e.target.checked)} />
                                 <label htmlFor="selectAll" className="ml-2 text-sm">Select All</label>
                               </div>
                               <div className="flex flex-col max-h-60 overflow-y-auto px-2">
                                 {
                                   (()=>{
                                     let hasResuls = false;
-                                    const results =   [...data].map((row, rowIndex) => {      
+                                    const results =   [...initialData].map((row, rowIndex) => {      
                                         if(`${typeof(row[heading]) === 'boolean' ? row[heading].toString() : row[heading]}`.toLowerCase().includes(filterText.toLowerCase())){
                                           hasResuls = true
                                           return (
                                             <div key={row['ID']} className="flex items-center justify-between py-1">
                                               {
                                                 <><input type="checkbox" id={`checkbox-${row['ID']}`} 
+                                                // checked = {isAllSelected && true}
                                                 onChange={(e)=>onCheckboxSelect(row['ID'],e.target.checked)}  
                                                 className="h-4 w-4"  />
                                               <label className="ml-2 text-sm" htmlFor={`checkbox-${row['ID']}`} >{typeof(row[heading]) === 'boolean' ? row[heading].toString() : row[heading]}</label></> 
@@ -177,7 +166,6 @@ function NewTable() {
                                         } else{
                                           return null;
                                         }                           
-                                    
                                   })
                                   return(
                                     <>
@@ -189,7 +177,7 @@ function NewTable() {
                                 }
                               </div>
                                 <div className="flex justify-end mt-3">
-                                  <button className="bg-blue-500 text-white text-sm px-3 py-1 rounded mr-2" onClick={handleFilterApply}>apply</button>
+                                  <button className={`bg-blue-500 text-white text-sm px-3 py-1 rounded mr-2`} onClick={handleFilterApply}>apply</button>
                                   <button className="bg-gray-300 text-black text-sm px-3 py-1 rounded" onClick={()=>setfilterField("")}>Cancel</button>
                                 </div>
                               </div>
@@ -227,6 +215,7 @@ function NewTable() {
                       ) : col === "Status" ? (
                         <select 
                         disabled={row['ID'] !== selectedRow['ID'] ? true : false}
+                        value={row['ID'] !== selectedRow['ID'] ? row[col] : selectedRow[col]}
                         className={`${row['ID'] !== selectedRow['ID'] && "cursor-not-allowed"}` }
                           onChange={(e) => {
                             handleInputChange(rowIndex, col, e.target.value);
