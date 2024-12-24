@@ -1,6 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useSyncExternalStore } from "react";
 import { useState } from "react";
 import { FaFilter } from 'react-icons/fa'; // Import the filter icon
+import Pagination from "./Pagination";
+import FilterBox from "./FilterBox";
+import axios from "axios"
 
 function NewTable() {
   const initialData = [
@@ -47,17 +50,21 @@ function NewTable() {
       WebhookURL: "5JbOdMNsy5vaek8lQBrKRw==",
     },
   ];
+  const[entireData,setEntireData] = useState([])
   const [sortField,setSortField] = useState("")
   const[sortOrder,setSortOrder] = useState('asc')
   const[filterField,setfilterField] = useState("")
   const[filterText,setfilterText] = useState("")
+  const[currentPage, setCurrentPage] = useState(1);
+  const[removeFilter,setRemoveFilter] = useState(false)
   const[isAllSelected,setIsAllSelected] = useState(false)
-  const optionArray = ["ACTIVE", "PENDING", "EXPIRED", "SUSPENDED"];
   const [selectedRow,setSelectedRow] = useState({})
+  const [totalPages,setTotalPages] = useState(0)
   const [data, setData] = useState(initialData);
   const columns = Object.keys(initialData[0]);
-  let selectedRowIdArray = [];
-
+  const[selectedRowIdArray,setselectedRowIdArray] = useState([])
+  let backupData = [];
+  const pageSize = 10;
   function setDateFormat(date) {}
 
   const handleInputChange = (index, key, value) => {
@@ -76,184 +83,187 @@ function NewTable() {
   }
   function handleSort(Column){
     const order = sortOrder === 'asc' ? 1 : -1;
-    const sortedArray = [...initialData].sort((a,b)=>{
+    const sortedArray = [...entireData].sort((a,b)=>{
       const comparison = a[Column] > b[Column] ? -1 : (a[Column] < b[Column] ? 1 : 0);
       return comparison * order;
     })
     setSortField(Column)
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    setData(sortedArray)
+    setEntireData(sortedArray)
   }
   function openFilterBox(Column){  
       setfilterField(filterField === "" || filterField !== Column ? Column : "");   
       setfilterText("");  
   }
   function onCheckboxSelect(rowId,isChecked){
-    console.log(rowId,isChecked);
     if(isChecked){
-      selectedRowIdArray.push(rowId)
+      const oldArray = [...selectedRowIdArray,rowId];
+      setselectedRowIdArray(oldArray)
     }else{
-      selectedRowIdArray = selectedRowIdArray.filter(id => id !== rowId)
+      setIsAllSelected(false)
+     let  newselectedRowIdArray = selectedRowIdArray.filter(id => id !== rowId)
+      setselectedRowIdArray(newselectedRowIdArray)
     }    
-
   }
   function handleFilterApply(){
     if(selectedRowIdArray.length !== 0){
-      const filteredArray = initialData.filter((row,rowIndex)=>{
+      const filteredArray = entireData.filter((row,rowIndex)=>{
         return selectedRowIdArray.includes(row['ID'])
       })
-      setData(filteredArray)
+      setEntireData(filteredArray)
       setfilterField("")
-      selectedRowIdArray = []
+      setCurrentPage(1)
+      setselectedRowIdArray([])
+      setIsAllSelected(false)
     }else{
       alert("Please select any value or cancel")
-    }
-      
+    } 
   }
   function handleEditRow(rowID,row){
     setSelectedRow(row)
   }
+  function handleSelectAllcheckBox(isChecked,clearAll){
+      if(!isChecked && clearAll){
+        setIsAllSelected(isChecked)
+      setselectedRowIdArray([])
+      }else{
+        setIsAllSelected(isChecked)
+      }
+  }
+  useEffect(()=>{
+    async function getData() {
+      try {
+        const res = await axios.get("http://localhost:10000/get-data");
+        const fetchedData = res.data.data;
+        setEntireData(res.data.data)                
+        // Calculate total pages based on the fetched data length
+        const totalPages =
+          fetchedData.length % 10 === 0 ? fetchedData.length / 10 : Math.floor(fetchedData.length / 10) + 1;
+        const currentPageData = res.data.data.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+        setData(currentPageData)
+        setTotalPages(totalPages);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+    getData();
+    
+  },[])
 
+  useEffect(()=>{
+    const currentPageData = entireData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    setData(currentPageData)   
+  },[currentPage,entireData])
+
+  useEffect(()=>{
+    const totalPages =
+    entireData.length % 10 === 0
+      ? entireData.length / 10
+      : Math.floor(entireData.length / 10) + 1;
+    setTotalPages(totalPages)  
+  },[entireData])
 
   return (
     <div className="p-4">
       <h1>Admin Dashboard</h1>
 
-      <table className="w-full table-auto  border-collapse border border-gray-300">
-       <thead>
-          <tr>
-            {/* Heeading */}
-            {
-                columns?.map((heading,index)=>{
-                    return(
-                        <th className="border bg-red-200  p-2 cursor-pointer" key={index}>
-                          <div className="flex items-center relative justify-between bg-green-500">
-                            <div className="w-full" onClick={()=>handleSort(heading)}>
-                            {heading}
-                            {sortField === heading && (sortOrder === 'asc'? "↓" :"↑")}
-                            </div>
-                            <div className="p-1" onClick={()=>openFilterBox(heading)}>
-                            {<FaFilter/>}
-                            </div>
-                            {
-                              filterField === heading &&   
-                              <div className="absolute z-50 top-6 right-0 w-[full] max-w-[280px] h-max bg-white shadow-md p-3">
-                              <div className="flex items-center justify-between mb-2">
-                                <input type="text" placeholder="Search" className="w-full p-1 text-sm border border-gray-300 rounded-md" onChange={(e)=>setfilterText(e.target.value)}/>
-                              </div>
-                              <div className="flex items-center mb-3">
-                                <input type="checkbox" id="selectAll" className="h-4 w-4" onChange={(e)=>setIsAllSelected(e.target.checked)} />
-                                <label htmlFor="selectAll" className="ml-2 text-sm">Select All</label>
-                              </div>
-                              <div className="flex flex-col max-h-60 overflow-y-auto px-2">
-                                {
-                                  (()=>{
-                                    let hasResuls = false;
-                                    const results =   [...initialData].map((row, rowIndex) => {      
-                                        if(`${typeof(row[heading]) === 'boolean' ? row[heading].toString() : row[heading]}`.toLowerCase().includes(filterText.toLowerCase())){
-                                          hasResuls = true
-                                          return (
-                                            <div key={row['ID']} className="flex items-center justify-between py-1">
-                                              {
-                                                <><input type="checkbox" id={`checkbox-${row['ID']}`} 
-                                                // checked = {isAllSelected && true}
-                                                onChange={(e)=>onCheckboxSelect(row['ID'],e.target.checked)}  
-                                                className="h-4 w-4"  />
-                                              <label className="ml-2 text-sm" htmlFor={`checkbox-${row['ID']}`} >{typeof(row[heading]) === 'boolean' ? row[heading].toString() : row[heading]}</label></> 
-                                              }
-                                            </div>
-                                          );
-                                        } else{
-                                          return null;
-                                        }                           
-                                  })
-                                  return(
-                                    <>
-                                    {results}
-                                    {!hasResuls && <span className="text-sm">No Results found</span>}
-                                    </>
-                                  )
-                                  })() 
-                                }
-                              </div>
-                                <div className="flex justify-end mt-3">
-                                  <button className={`bg-blue-500 text-white text-sm px-3 py-1 rounded mr-2`} onClick={handleFilterApply}>apply</button>
-                                  <button className="bg-gray-300 text-black text-sm px-3 py-1 rounded" onClick={()=>setfilterField("")}>Cancel</button>
-                                </div>
-                              </div>
-                             }
-                          </div>
-                        </th>
-                    )
-                })
-            }
-            {
-                // Edit Heading column
-                <th className="border p-2 cursor-pointer">Edit</th>
-            }
-          </tr>
-      </thead>
-      <tbody>
-          {data?.map((row, rowIndex) => {
-            return (
-              <tr key={row['ID']}>
-                {columns?.map((col, colIndex) => {
-                  return (
-                    <td key={colIndex}>
-                      {col === "Expiry" ? (
-                        <div className=" cursor-not-allowed">
-                          <input
-                            type="datetime-local"
-                            // disabled={row['ID'] !== selectedRow['ID'] ? true : false}
-                            className={`${row['ID'] !== selectedRow['ID'] && "disable-me"}` }
-                            value={row['ID'] !== selectedRow['ID'] ? row[col] : selectedRow[col]}
-                            onChange={(e) => {
-                              handleInputChange(rowIndex, col, e.target.value);
-                            }}
-                          />
-                        </div>
-                      ) : col === "Status" ? (
-                        <select 
-                        disabled={row['ID'] !== selectedRow['ID'] ? true : false}
-                        value={row['ID'] !== selectedRow['ID'] ? row[col] : selectedRow[col]}
-                        className={`${row['ID'] !== selectedRow['ID'] && "cursor-not-allowed"}` }
-                          onChange={(e) => {
-                            handleInputChange(rowIndex, col, e.target.value);
-                          }}
-                        >
-                          {optionArray?.map((opt, i) => {
-                            return <option  key={i}>{opt}</option>;
-                          })}
-                        </select>
-                      ) : col === "InteractiveAllowed" ||
-                        col === "BroadcastAllowed" ? (
-                            <input
-                            disabled={row['ID'] !== selectedRow['ID'] ? true : false}
-                            className={`${row['ID'] !== selectedRow['ID'] && "cursor-not-allowed"}` }
-                            type="checkbox"
-                            checked={row['ID'] !== selectedRow['ID'] ? row[col] : selectedRow[col]}
-                            onChange={(e) =>
-                                handleInputChange(rowIndex, col, e.target.checked)
-                            }
-                            />
-                      ) : col === "WebhookURL" ? (
-                        <span>{row['ID'] !== selectedRow['ID'] ? row[col] : selectedRow[col]}</span>
-                      ) : (
-                        <span>{row['ID'] !== selectedRow['ID'] ? row[col] : selectedRow[col]}</span>
-                      )
-                      }
-                    </td>
-                  );
-                })}
-                {
-                  selectedRow['ID'] === row['ID'] ? <td className='cursor-pointer' key={row['ID']} onClick={()=>handleSaveRow(row['ID'],rowIndex)}>Save</td>  : <td className='cursor-pointer' key={row['ID']} onClick={()=>handleEditRow(row['ID'],row)}>Edit</td> 
-                }
-                
-              </tr>
-            );
-          })}
-      </tbody>
-      </table>
+  <table className="w-full table-auto border-collapse border border-gray-300 rounded-lg shadow-lg">
+  <thead>
+    <tr className="bg-[#F5821F]  text-white text-left">
+      {columns?.map((heading, index) => (
+        <th className="p-3  cursor-pointer text-sm relative font-semibold" key={index}>
+          <div className="flex items-center  justify-between">
+            <span onClick={() => handleSort(heading)} className="flex-1">
+              {heading}
+              {sortField === heading && (sortOrder === "asc" ? " ↓" : " ↑")}
+            </span>
+            <button
+              className="p-1 text-white hover:text-gray-200"
+              onClick={() => openFilterBox(heading)}
+            >
+              <FaFilter />
+            </button>
+          </div>
+          {filterField === heading && (
+              <FilterBox 
+              heading={heading}
+              setfilterText={setfilterText} 
+              handleSelectAllcheckBox={handleSelectAllcheckBox} 
+              isAllSelected={isAllSelected} 
+              entireData={entireData} 
+              filterText={filterText} 
+              selectedRowIdArray={selectedRowIdArray} 
+              onCheckboxSelect={onCheckboxSelect} 
+              handleFilterApply={handleFilterApply} 
+              setfilterField={setfilterField} 
+              setselectedRowIdArray={setselectedRowIdArray}
+              setRemoveFilter={setRemoveFilter}
+            />
+          )}
+        </th>
+      ))}
+      <th className="p-3 text-sm uppercase font-semibold text-[#1A396]">Edit</th>
+    </tr>
+  </thead>
+  <tbody>
+    {data?.map((row, rowIndex) => (
+      <tr key={row["ID"]} className="odd:bg-gray-50 even:bg-white hover:bg-gray-100">
+        {columns?.map((col, colIndex) => (
+          <td className="px-3 py-2 text-sm text-gray-800" key={colIndex}>
+            {col === "Expiry" ? (
+              <input
+                type="datetime-local"
+                className={`${
+                  row["ID"] !== selectedRow["ID"] && "cursor-not-allowed text-gray-600"
+                }`}
+                value={row["ID"] !== selectedRow["ID"] ? row[col] : selectedRow[col]}
+                onChange={(e) => handleInputChange(rowIndex, col, e.target.value)}
+                disabled={row["ID"] !== selectedRow["ID"]}
+              />
+            ) : col === "Status" ? (
+              <select
+                className={`${ 
+                  row["ID"] !== selectedRow["ID"] && "cursor-not-allowed text-gray-600"
+                }`}
+                value={row["ID"] !== selectedRow["ID"] ? row[col] : selectedRow[col]}
+                onChange={(e) => handleInputChange(rowIndex, col, e.target.value)}
+                disabled={row["ID"] !== selectedRow["ID"]}
+              >
+                {["ACTIVE", "PENDING", "EXPIRED", "SUSPENDED"]?.map((opt, i) => (
+                  <option key={i}>{opt}</option>
+                ))}
+              </select>
+            ) : col === "InteractiveAllowed" || col === "BroadcastAllowed" ? (
+              <input
+                type="checkbox"
+                className={`${
+                  row["ID"] !== selectedRow["ID"] && "cursor-not-allowed"
+                }`}
+                checked={row["ID"] !== selectedRow["ID"] ? row[col] : selectedRow[col]}
+                onChange={(e) => handleInputChange(rowIndex, col, e.target.checked)}
+                disabled={row["ID"] !== selectedRow["ID"]}
+              />
+            ) : col === "WebhookURL" ? (
+              <span>{row["ID"] !== selectedRow["ID"] ? row[col] : selectedRow[col]}</span>
+            ) : (
+              <span>{row["ID"] !== selectedRow["ID"] ? row[col] : selectedRow[col]}</span>
+            )}
+          </td>
+        ))}
+        <td className="p-3 text-[#F5821F] font-semibold cursor-pointer">
+          {selectedRow["ID"] === row["ID"] ? (
+            <button className="bg-transparent" onClick={() => handleSaveRow(row["ID"], rowIndex)}>Save</button>
+          ) : (
+            <button onClick={() => handleEditRow(row["ID"], row)}>Edit</button>
+          )}
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+      <Pagination totalPages={totalPages} currentPage={currentPage} setCurrentPage={setCurrentPage}/>
+
     </div>
   );
 }

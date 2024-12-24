@@ -50,7 +50,6 @@ const TableWithFilterAndSort = () => {
   };
   // Function to handle sorting
   const handleSort = (field) => 
-    // console.log(field);
     {
     const order = sortField === field && sortOrder === "asc" ? "desc" : "asc";
     const sortedData = [...data].sort((a, b) => {

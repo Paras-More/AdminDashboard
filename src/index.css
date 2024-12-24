@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+*{
+  font-size: 14px;
+  font-weight: 400;
+  font-family: "Open Sans",sans-serif !important;
+}
 .disable-me{
   pointer-events: none;
   cursor: not-allowed!important;
@@ -22,5 +27,5 @@ td, th {
 }
 
 tr:nth-child(even) {
-  background-color: #dddddd;
+  /* background-color: #dddddd; */
 }
