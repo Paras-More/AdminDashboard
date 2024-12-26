@@ -30,6 +30,6 @@ const formatToDateTimeLocal = (dateString) => {
     const seconds = String(date.getSeconds()).padStart(2, "0");
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   };
-
+  
 
 export default formatToDateTimeLocal;

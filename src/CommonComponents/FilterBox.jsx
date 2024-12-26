@@ -15,6 +15,8 @@ function FilterBox({
   }){
 
     useEffect(() => {
+      console.log("filerbxi");
+      
         if (isAllSelected) {
           const newSelectedIds = entireData
             .filter(
@@ -26,8 +28,11 @@ function FilterBox({
             .map((row) => row["ID"]);
       
           setselectedRowIdArray(newSelectedIds);
+          console.log(newSelectedIds);
         }
-      }, [isAllSelected, entireData, filterText, heading, setselectedRowIdArray]);
+
+        
+      }, [isAllSelected, entireData, filterText, ]);
       
   return (
     <div className="absolute top-8 right-0 bg-white z-50  border border-gray-300 shadow-lg rounded-md p-4 w-[full] max-w-[280px] ">

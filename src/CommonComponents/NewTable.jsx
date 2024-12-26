@@ -79,7 +79,7 @@ function NewTable() {
   };
   async function getData() {
     try {
-      const res = await axios.get("http://localhost:10000/get-data");
+      const res = await axios("http://localhost:10000/get-data");
       const fetchedData = res.data.data;
       setEntireData(fetchedData)    
       setbackupData(fetchedData)            
@@ -96,23 +96,28 @@ function NewTable() {
   async function handleSaveRow(rowId,row,rowIndex){
     alert("calling api")
     const obj = {
-      "ID":rowId,
-      "Username":selectedRow['Username'],
-      "Expiry":selectedRow["Expiry"],
-      "Status":selectedRow["Status"],
+      "ID":`${rowId}`,
+      "Username":`${selectedRow['Username']}`,
+      "Expiry":`${selectedRow["Expiry"]}`,
+      "Status":`${selectedRow["Status"]}`,
       "InteractiveAllowed":selectedRow["InteractiveAllowed"],
       "BroadcastAllowed":selectedRow["BroadcastAllowed"]
     }
-    const res = await axios.put(`http://192.168.10.121:8020/admincontrol/update`,obj,{
-			headers: {
-				'x-Mirae-Version': 1,
-				'X-Auth-Token': "Xpec65IlxQUzAmLBJO5t"
-			}
-		});
-    console.log(res);
-    
-    getTableData();
-    setSelectedRow({}) 
+    try{
+      const res = await axios.put("http://192.168.10.121:8020/admincontrol/update",obj,{
+          headers: {
+            "Content-Type": "application/json",
+            "x-Mirae-Version": 1,
+            "X-Auth-Token": "Xpec65IlxQUzAmLBJO5t",
+          },
+        });       
+       getTableData({setEntireData,setbackupData,setData,setTotalPages,currentPage,pageSize});
+       setSelectedRow({}) 
+    }catch(e){
+      console.log(e); 
+      alert("something went wrong while updating the table row")
+    }
+
     
   }
   function handleSort(Column){
@@ -139,9 +144,7 @@ function NewTable() {
       setselectedRowIdArray(newselectedRowIdArray)
     }    
   }
-  function handleFilterApply(){
-    console.log(selectedRow['Expiry']);
-    
+  function handleFilterApply(){    
     if(selectedRowIdArray.length !== 0){
       const filteredArray = entireData.filter((row,rowIndex)=>{
         return selectedRowIdArray.includes(row['ID'])
@@ -168,7 +171,7 @@ function NewTable() {
   }
   useEffect(()=>{
     // getData();
-    getTableData({setEntireData,setbackupData,setData,setTotalPages,currentPage})
+    getTableData({setEntireData,setbackupData,setData,setTotalPages,currentPage,pageSize})
   },[])
 
   useEffect(()=>{
@@ -182,8 +185,6 @@ function NewTable() {
       ? entireData.length / 10
       : Math.floor(entireData.length / 10) + 1;
     setTotalPages(totalPages)  
-    console.log(entireData);
-    
   },[entireData])
 
   useEffect(()=>{

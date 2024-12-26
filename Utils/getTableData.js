@@ -1,10 +1,12 @@
 import axios from "axios"
-const getTableData = async ({setEntireData,setbackupData,setData,setTotalPages}) => {
+const getTableData = async ({setEntireData,setbackupData,setData,setTotalPages,currentPage,pageSize}) => {
+	
 	try{
 		const res = await axios.get(`http://192.168.10.121:8020/admincontrol/fetch`,{
 			headers: {
 				'x-Mirae-Version': 1,
-				'X-Auth-Token': "Xpec65IlxQUzAmLBJO5t"
+				'X-Auth-Token': "Xpec65IlxQUzAmLBJO5t",
+				'Content-Type': 'application/json'
 			}
 		}
 	);

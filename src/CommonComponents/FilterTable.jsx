@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 const TableWithFilterAndSort = () => {
   const initialData = [
     {
@@ -98,6 +98,10 @@ const TableWithFilterAndSort = () => {
         row[key].toLowerCase().includes(filterText.toLowerCase())
     )
   );
+
+  useEffect(()=>{
+    
+  },[])
 
   return (
     <div className="p-4">
