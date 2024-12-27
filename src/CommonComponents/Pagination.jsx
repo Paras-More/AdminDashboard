@@ -10,7 +10,7 @@ function Pagination({ totalPages,setCurrentPage,currentPage }) {
   const handlePageChange = (page) => setCurrentPage(page);
 
   return (
-    <div className="flex items-center justify-center gap-5 mt-5 py-2 border bg-white">
+    <div className="flex items-center justify-center gap-5 mt-5 py-2  bg-white">
       {/* Previous Button */}
       {currentPage > 1 && (
         <button

@@ -35,7 +35,7 @@ function FilterBox({
       }, [isAllSelected, entireData, filterText, ]);
       
   return (
-    <div className="absolute top-8 right-0 bg-white z-50  border border-gray-300 shadow-lg rounded-md p-4 w-[full] max-w-[280px] ">
+    <div className="absolute top-8 right-0 bg-white z-50  border border-gray-300 shadow-lg rounded-md p-4 w-[full] max-w-[280px] overflow-visible ">
     <div className="flex items-center justify-between mb-2">
       <input
         type="text"

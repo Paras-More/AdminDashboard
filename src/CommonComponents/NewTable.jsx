@@ -69,10 +69,6 @@ function NewTable() {
   const pageSize = 10;
 
   const handleInputChange = (index, key, value) => {
-    console.log("val",value);
-    console.log("key",key);
-    console.log('in',index);
-    
     const updatedData = {...selectedRow};
     updatedData[key] = value;
     setSelectedRow(updatedData);
@@ -94,7 +90,6 @@ function NewTable() {
     }
   }
   async function handleSaveRow(rowId,row,rowIndex){
-    alert("calling api")
     const obj = {
       "ID":`${rowId}`,
       "Username":`${selectedRow['Username']}`,
@@ -197,11 +192,11 @@ function NewTable() {
 
 
   return (
-    <div className="p-4  max-w-[100vw] overflow-hidden">
+    <div className="p-4  max-w-[100vw]">
       <h1>Admin Dashboard</h1>
 
-      <div className="max-w-[100vw] overflow-scroll">
-        <table className="w-full table-auto border-collapse border border-gray-300 rounded-lg shadow-lg min-h-[550px]">
+      <div className="max-w-[100vw]">
+        <table className="w-full table-auto border-collapse border border-gray-300 rounded-lg shadow-lg min-h-max">
         <thead>
           <tr className="bg-[#F5821F]  text-white text-left">
             {columns?.map((heading, index) => (
