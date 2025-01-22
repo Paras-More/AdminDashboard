@@ -49,8 +49,7 @@ const TableWithFilterAndSort = () => {
     setFilterText(e.target.value);
   };
   // Function to handle sorting
-  const handleSort = (field) => 
-    {
+  const handleSort = (field) => {
     const order = sortField === field && sortOrder === "asc" ? "desc" : "asc";
     const sortedData = [...data].sort((a, b) => {
       if (a[field] < b[field]) return order === "asc" ? -1 : 1;
@@ -86,7 +85,7 @@ const TableWithFilterAndSort = () => {
     const parts = dateString.split(" ");
     const day = parts[0].padStart(2, "0");
     const month = months[parts[1].toUpperCase()];
-    const year = parts[2] ;
+    const year = parts[2];
     // const time = parts[3].substring(0, 5);
     return `${year}-${month}-${day}`;
   };
@@ -98,10 +97,6 @@ const TableWithFilterAndSort = () => {
         row[key].toLowerCase().includes(filterText.toLowerCase())
     )
   );
-
-  useEffect(()=>{
-    
-  },[])
 
   return (
     <div className="p-4">
@@ -118,15 +113,27 @@ const TableWithFilterAndSort = () => {
       <table className="table-auto w-full border-collapse border border-gray-300">
         <thead>
           <tr>
-            <th className="border p-2 cursor-pointer" onClick={() => handleSort("Username")}>
-              Username {sortField === "Username" && (sortOrder === "asc" ? "↑" : "↓")}
+            <th
+              className="border p-2 cursor-pointer"
+              onClick={() => handleSort("Username")}
+            >
+              Username{" "}
+              {sortField === "Username" && (sortOrder === "asc" ? "↑" : "↓")}
             </th>
-            <th className="border p-2 cursor-pointer" onClick={() => handleSort("AppName")}>
-              AppName {sortField === "AppName" && (sortOrder === "asc" ? "↑" : "↓")}
+            <th
+              className="border p-2 cursor-pointer"
+              onClick={() => handleSort("AppName")}
+            >
+              AppName{" "}
+              {sortField === "AppName" && (sortOrder === "asc" ? "↑" : "↓")}
             </th>
             <th className="border p-2">Expiry</th>
-            <th className="border p-2 cursor-pointer" onClick={() => handleSort("Status")}>
-              Status {sortField === "Status" && (sortOrder === "asc" ? "↑" : "↓")}
+            <th
+              className="border p-2 cursor-pointer"
+              onClick={() => handleSort("Status")}
+            >
+              Status{" "}
+              {sortField === "Status" && (sortOrder === "asc" ? "↑" : "↓")}
             </th>
             <th className="border p-2">Interactive Allowed</th>
             <th className="border p-2">Broadcast Allowed</th>
@@ -142,7 +149,9 @@ const TableWithFilterAndSort = () => {
                 <input
                   type="datetime-local"
                   value={formatToDateTimeLocal(row.Expiry)}
-                  onChange={(e) => handleInputChange(index, "Expiry", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange(index, "Expiry", e.target.value)
+                  }
                   className="p-1 border rounded"
                 />
               </td>
@@ -150,7 +159,9 @@ const TableWithFilterAndSort = () => {
               <td className="border p-2">
                 <select
                   value={row.Status}
-                  onChange={(e) => handleInputChange(index, "Status", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange(index, "Status", e.target.value)
+                  }
                   className="p-1 border rounded"
                 >
                   <option value="PENDING">PENDING</option>
@@ -165,7 +176,11 @@ const TableWithFilterAndSort = () => {
                   type="checkbox"
                   checked={row.InteractiveAllowed}
                   onChange={(e) =>
-                    handleInputChange(index, "InteractiveAllowed", e.target.checked)
+                    handleInputChange(
+                      index,
+                      "InteractiveAllowed",
+                      e.target.checked
+                    )
                   }
                 />
               </td>
@@ -174,7 +189,11 @@ const TableWithFilterAndSort = () => {
                   type="checkbox"
                   checked={row.BroadcastAllowed}
                   onChange={(e) =>
-                    handleInputChange(index, "BroadcastAllowed", e.target.checked)
+                    handleInputChange(
+                      index,
+                      "BroadcastAllowed",
+                      e.target.checked
+                    )
                   }
                 />
               </td>

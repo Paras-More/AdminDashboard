@@ -7,6 +7,7 @@
   font-weight: 400;
   font-family: "Open Sans",sans-serif !important;
 }
+
 .disable-me{
   pointer-events: none;
   cursor: not-allowed!important;
@@ -18,6 +19,8 @@ table {
   font-family: arial, sans-serif;
   border-collapse: collapse;
   width: 100%;
+  white-space: nowrap;
+  overflow-x: scroll;
 }
 
 td, th {
