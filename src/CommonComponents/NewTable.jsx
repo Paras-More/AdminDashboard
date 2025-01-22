@@ -69,15 +69,7 @@ function NewTable() {
   const pageSize = 10;
 
   const handleInputChange = (index, key, value) => {
-<<<<<<< HEAD
-    console.log("val", value);
-    console.log("key", key);
-    console.log("in", index);
-
     const updatedData = { ...selectedRow };
-=======
-    const updatedData = {...selectedRow};
->>>>>>> 0350471ab0b56d2376804b4638bd7d848d3b2d85
     updatedData[key] = value;
     setSelectedRow(updatedData);
   };
