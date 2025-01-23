@@ -75,15 +75,12 @@ function NewTable() {
   };
   async function getData() {
     try {
-      const res = await axios.get(
-        "http://192.168.10.145:8020/admincontrol/fetch",
-        {
-          headers: {
-            "x-Mirae-Version": 1,
-            "X-Auth-Token": "Xpec65IlxQUzAmLBJO5t",
-          },
-        }
-      );
+      const res = await axios.get(import.meta.env.VITE_EDIT_TABLE_DATA_API, {
+        headers: {
+          "x-Mirae-Version": 1,
+          "X-Auth-Token": "Xpec65IlxQUzAmLBJO5t",
+        },
+      });
 
       const fetchedData = res.data || initialData;
       setEntireData(fetchedData);
