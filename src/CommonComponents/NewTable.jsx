@@ -5,6 +5,7 @@ import Pagination from "./Pagination";
 import FilterBox from "./FilterBox";
 import formatToDateTimeLocal from "../../Utils/formatToDateTimeLocal";
 import getTableData from "../../Utils/getTableData";
+import ApiForm from "./APiForm";
 import axios from "axios";
 
 function NewTable() {
@@ -64,6 +65,7 @@ function NewTable() {
   const [totalPages, setTotalPages] = useState(0);
   const [data, setData] = useState(initialData);
   const columns = Object.keys(initialData[0]);
+  const [isOPen, setIsOpen] = useState(false);
   const [selectedRowIdArray, setselectedRowIdArray] = useState([]);
   const [backupData, setbackupData] = useState([]);
   const pageSize = 10;
@@ -83,6 +85,7 @@ function NewTable() {
       });
 
       const fetchedData = res.data || initialData;
+      console.log("fetchedData", fetchedData);
       setEntireData(fetchedData);
       setbackupData(fetchedData);
       // Calculate total pages based on the fetched data length
@@ -101,14 +104,13 @@ function NewTable() {
     }
   }
   async function handleSaveRow(rowId, row, rowIndex) {
-    alert("calling api");
     const obj = {
       ID: `${rowId}`,
-      Username: `${selectedRow["Username"]}`,
-      Expiry: `${selectedRow["Expiry"]}`,
-      Status: `${selectedRow["Status"]}`,
-      InteractiveAllowed: selectedRow["InteractiveAllowed"],
-      BroadcastAllowed: selectedRow["BroadcastAllowed"],
+      Username: `${row["Username"]}`,
+      Expiry: `${row["Expiry"]}`,
+      Status: `${row["Status"]}`,
+      InteractiveAllowed: row["InteractiveAllowed"],
+      BroadcastAllowed: row["BroadcastAllowed"],
     };
     try {
       const res = await axios.put(
@@ -123,8 +125,6 @@ function NewTable() {
         }
       );
       console.log(res);
-      // return;
-
       getTableData({
         setEntireData,
         setbackupData,
@@ -133,8 +133,8 @@ function NewTable() {
         currentPage,
         pageSize,
       });
-
       setSelectedRow({});
+      setIsOpen(false);
     } catch (e) {
       console.log(e);
       alert("something went wrong while updating the table row");
@@ -183,6 +183,7 @@ function NewTable() {
   }
   async function handleEditRow(rowID, row) {
     setSelectedRow(row);
+    setIsOpen(true);
   }
   function handleSelectAllcheckBox(isChecked, clearAll) {
     if (!isChecked && clearAll) {
@@ -193,9 +194,6 @@ function NewTable() {
     }
   }
   useEffect(() => {
-    // ****Below function is  For testing below function of own server **********
-    // getData();
-
     // **** Below function is actual function which will call real api**********
     getTableData({
       setEntireData,
@@ -234,163 +232,190 @@ function NewTable() {
   }, [removeFilter]);
 
   return (
-    <div className=" max-w-[100vw] z-20 min-h-[100vh] max-h-[100vh] bg-bwhite flex flex-col items-center justify-between ">
-      <div className="max-w-[100vw]  min-h-[92vh] overflow-x-auto z-50 ">
-        <table className="w-full z-20 border-collapse  border-gray-300 rounded-lg shadow-lg">
-          <thead>
-            <tr className="bg-[#F5821F]  text-white text-left">
-              {columns?.map((heading, index) => (
-                <th
-                  className="p-3  cursor-pointer text-sm relative font-semibold"
-                  key={index}
-                >
-                  <div className="flex items-center  justify-between">
-                    <span
-                      onClick={() => handleSort(heading)}
-                      className="flex-1"
-                    >
-                      {heading}
-                      {sortField === heading &&
-                        (sortOrder === "asc" ? " ↓" : " ↑")}
-                    </span>
-                    <button
-                      className="p-1 text-white hover:text-gray-200"
-                      onClick={() => openFilterBox(heading)}
-                    >
-                      <FaFilter />
-                    </button>
-                  </div>
-                  {filterField === heading && (
-                    <FilterBox
-                      heading={heading}
-                      setfilterText={setfilterText}
-                      handleSelectAllcheckBox={handleSelectAllcheckBox}
-                      isAllSelected={isAllSelected}
-                      entireData={entireData}
-                      filterText={filterText}
-                      selectedRowIdArray={selectedRowIdArray}
-                      onCheckboxSelect={onCheckboxSelect}
-                      handleFilterApply={handleFilterApply}
-                      setfilterField={setfilterField}
-                      setselectedRowIdArray={setselectedRowIdArray}
-                      setRemoveFilter={setRemoveFilter}
-                    />
-                  )}
-                </th>
-              ))}
-              <th className="p-3 text-sm uppercase font-semibold text-[#1A396]">
-                Edit
-              </th>
-            </tr>
-          </thead>
-          <tbody className="overflow-x-scroll">
-            {data?.map((row, rowIndex) => (
-              <tr
-                key={row["ID"]}
-                className="odd:bg-gray-50 even:bg-white hover:bg-gray-100"
-              >
-                {columns?.map((col, colIndex) => (
-                  <td
-                    className="px-3 py-2 text-sm text-gray-800"
-                    key={colIndex}
+    <div className="relative">
+      <div className=" max-w-[100vw] z-20 min-h-[100vh] max-h-[100vh] bg-bwhite flex flex-col items-center justify-between ">
+        <div className="scale-[0.67] origin-top  min-h-[92vh] overflow-x-auto z-50 ">
+          <table className="w-full z-20 border-collapse  border-gray-300 rounded-lg shadow-lg">
+            <thead>
+              <tr className="bg-[#F5821F]  text-white text-left">
+                {columns?.map((heading, index) => (
+                  <th
+                    className={`p-3 cursor-pointer text-sm relative font-semibold
+                    `}
+                    key={index}
                   >
-                    {col === "Expiry" ? (
-                      <input
-                        type="datetime-local"
-                        className={`${
-                          row["ID"] !== selectedRow["ID"] &&
-                          "cursor-not-allowed text-gray-600"
-                        }`}
-                        value={
-                          row["ID"] !== selectedRow["ID"]
-                            ? formatToDateTimeLocal(row[col])
-                            : formatToDateTimeLocal(selectedRow[col])
-                        }
-                        // value={selectedRow[col]}
-                        onChange={(e) =>
-                          handleInputChange(rowIndex, col, e.target.value)
-                        }
-                        disabled={row["ID"] !== selectedRow["ID"]}
-                      />
-                    ) : col === "Status" ? (
-                      <select
-                        className={`${
-                          row["ID"] !== selectedRow["ID"] &&
-                          "cursor-not-allowed text-gray-600"
-                        }`}
-                        value={
-                          row["ID"] !== selectedRow["ID"]
-                            ? row[col]
-                            : selectedRow[col]
-                        }
-                        onChange={(e) =>
-                          handleInputChange(rowIndex, col, e.target.value)
-                        }
-                        disabled={row["ID"] !== selectedRow["ID"]}
+                    <div className="flex items-center  justify-between">
+                      <span
+                        onClick={() => handleSort(heading)}
+                        className="flex-1"
                       >
-                        {["ACTIVE", "PENDING", "EXPIRED", "SUSPENDED"]?.map(
-                          (opt, i) => (
-                            <option key={i}>{opt}</option>
-                          )
-                        )}
-                      </select>
-                    ) : col === "InteractiveAllowed" ||
-                      col === "BroadcastAllowed" ? (
-                      <input
-                        type="checkbox"
-                        className={`${
-                          row["ID"] !== selectedRow["ID"] &&
-                          "cursor-not-allowed"
-                        }`}
-                        checked={
-                          row["ID"] !== selectedRow["ID"]
-                            ? row[col]
-                            : selectedRow[col]
-                        }
-                        onChange={(e) =>
-                          handleInputChange(rowIndex, col, e.target.checked)
-                        }
-                        disabled={row["ID"] !== selectedRow["ID"]}
+                        {heading}
+                        {sortField === heading &&
+                          (sortOrder === "asc" ? " ↓" : " ↑")}
+                      </span>
+                      <button
+                        className="p-1 text-white hover:text-gray-200"
+                        onClick={() => openFilterBox(heading)}
+                      >
+                        <FaFilter />
+                      </button>
+                    </div>
+                    {filterField === heading && (
+                      <FilterBox
+                        heading={heading}
+                        setfilterText={setfilterText}
+                        handleSelectAllcheckBox={handleSelectAllcheckBox}
+                        isAllSelected={isAllSelected}
+                        entireData={entireData}
+                        filterText={filterText}
+                        selectedRowIdArray={selectedRowIdArray}
+                        onCheckboxSelect={onCheckboxSelect}
+                        handleFilterApply={handleFilterApply}
+                        setfilterField={setfilterField}
+                        setselectedRowIdArray={setselectedRowIdArray}
+                        setRemoveFilter={setRemoveFilter}
                       />
-                    ) : col === "WebhookURL" ? (
-                      <span>
-                        {row["ID"] !== selectedRow["ID"]
-                          ? row[col]
-                          : selectedRow[col]}
-                      </span>
-                    ) : (
-                      <span>
-                        {row["ID"] !== selectedRow["ID"]
-                          ? row[col]
-                          : selectedRow[col]}
-                      </span>
                     )}
-                  </td>
+                  </th>
                 ))}
-                <td className="p-3 text-[#F5821F] font-semibold cursor-pointer">
-                  {selectedRow["ID"] === row["ID"] ? (
-                    <button
-                      className="bg-transparent"
-                      onClick={() => handleSaveRow(row["ID"], row, rowIndex)}
-                    >
-                      Save
-                    </button>
-                  ) : (
-                    <button onClick={() => handleEditRow(row["ID"], row)}>
-                      Edit
-                    </button>
-                  )}
-                </td>
+                <th className="p-3 text-sm uppercase font-semibold text-[#1A396]">
+                  Edit
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="overflow-x-scroll">
+              {data?.map((row, rowIndex) => {
+                return (
+                  <tr
+                    key={row["ID"]}
+                    className="odd:bg-gray-50 even:bg-white hover:bg-gray-100"
+                  >
+                    {columns?.map((col, colIndex) => {
+                      return (
+                        <td
+                          className={`px-3 py-2 text-sm text-gray-800`}
+                          key={colIndex}
+                        >
+                          {col === "Expiry" ? (
+                            <input
+                              type="datetime-local"
+                              className={`${
+                                row["ID"] !== selectedRow["ID"] &&
+                                "cursor-not-allowed text-gray-600"
+                              }`}
+                              value={
+                                row["ID"] !== selectedRow["ID"]
+                                  ? formatToDateTimeLocal(row[col])
+                                  : formatToDateTimeLocal(selectedRow[col])
+                              }
+                              // value={selectedRow[col]}
+                              onChange={(e) =>
+                                handleInputChange(rowIndex, col, e.target.value)
+                              }
+                              disabled={row["ID"] !== selectedRow["ID"]}
+                            />
+                          ) : col === "Status" ? (
+                            <select
+                              className={`${
+                                row["ID"] !== selectedRow["ID"] &&
+                                "cursor-not-allowed text-gray-600"
+                              }`}
+                              value={
+                                row["ID"] !== selectedRow["ID"]
+                                  ? row[col]
+                                  : selectedRow[col]
+                              }
+                              onChange={(e) =>
+                                handleInputChange(rowIndex, col, e.target.value)
+                              }
+                              disabled={row["ID"] !== selectedRow["ID"]}
+                            >
+                              {[
+                                "ACTIVE",
+                                "PENDING",
+                                "EXPIRED",
+                                "SUSPENDED",
+                              ]?.map((opt, i) => (
+                                <option key={i}>{opt}</option>
+                              ))}
+                            </select>
+                          ) : col === "InteractiveAllowed" ||
+                            col === "BroadcastAllowed" ? (
+                            <input
+                              type="checkbox"
+                              className={`${
+                                row["ID"] !== selectedRow["ID"] &&
+                                "cursor-not-allowed"
+                              }`}
+                              checked={
+                                row["ID"] !== selectedRow["ID"]
+                                  ? row[col]
+                                  : selectedRow[col]
+                              }
+                              onChange={(e) =>
+                                handleInputChange(
+                                  rowIndex,
+                                  col,
+                                  e.target.checked
+                                )
+                              }
+                              disabled={row["ID"] !== selectedRow["ID"]}
+                            />
+                          ) : col === "WebhookURL" ? (
+                            <span>
+                              {row["ID"] !== selectedRow["ID"]
+                                ? row[col]
+                                : selectedRow[col]}
+                            </span>
+                          ) : (
+                            <span>
+                              {row["ID"] !== selectedRow["ID"]
+                                ? row[col]
+                                : selectedRow[col]}
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
+                    <td className="p-3 text-[#F5821F] font-semibold cursor-pointer">
+                      {selectedRow["ID"] === row["ID"] ? (
+                        <button
+                          className="bg-transparent"
+                          onClick={() =>
+                            handleSaveRow(row["ID"], row, rowIndex)
+                          }
+                        >
+                          Save
+                        </button>
+                      ) : (
+                        <button onClick={() => handleEditRow(row["ID"], row)}>
+                          Edit
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <Pagination
+          totalPages={totalPages}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+        />
       </div>
-      <Pagination
-        totalPages={totalPages}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-      />
+      <div
+        onClick={() => {
+          setIsOpen(false);
+          setSelectedRow({});
+        }}
+        className={`absolute top-0 z-50 w-full h-full bg-gray-900 bg-opacity-70 ${
+          isOPen ? "block" : "hidden"
+        }`}
+      >
+        <ApiForm formData={selectedRow} handleSaveRow={handleSaveRow} />
+      </div>
     </div>
   );
 }

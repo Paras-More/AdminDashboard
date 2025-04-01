@@ -18,6 +18,8 @@ const getTableData = async ({
       },
     });
     const fetchedData = res.data;
+    console.log("refsa", fetchedData);
+
     setEntireData(fetchedData);
     setbackupData(fetchedData);
     // Calculate total pages based on the fetched data length
