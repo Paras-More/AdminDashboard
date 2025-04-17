@@ -1,4 +1,4 @@
-import React, { useEffect, useSyncExternalStore } from "react";
+import React, { useCallback, useEffect, useSyncExternalStore } from "react";
 import { useState } from "react";
 import { FaFilter } from "react-icons/fa"; // Import the filter icon
 import Pagination from "./Pagination";
@@ -193,6 +193,12 @@ function NewTable() {
       setIsAllSelected(isChecked);
     }
   }
+  const handleClose = useCallback(() => {
+    console.log("handle close called");
+
+    setIsOpen(false);
+  }, []);
+
   useEffect(() => {
     // **** Below function is actual function which will call real api**********
     getTableData({
@@ -407,6 +413,8 @@ function NewTable() {
       </div>
       <div
         onClick={() => {
+          console.log("close function called");
+
           setIsOpen(false);
           setSelectedRow({});
         }}

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { FaFilter } from "react-icons/fa";
+import { FaFilter } from "react-icons/fa"; 
 import Pagination from "./Pagination";
 import FilterBox from "./FilterBox";
 import axios from "axios";
 
-function NewDashboard() {
+function NewTable() {
   const initialData = [
     {
       ID: "53d7c076ab0d40048c766bf6c930a102",
@@ -20,7 +20,7 @@ function NewDashboard() {
       InteractiveAllowed: false,
       BroadcastAllowed: false,
       WebhookURL: "JNPHdc06UUmwOO/eA6uBHQ==",
-    },
+    }
   ];
 
   const [columns, setColumns] = useState(Object.keys(initialData[0]));
@@ -29,11 +29,11 @@ function NewDashboard() {
   // Handle Drag and Drop
   const handleDragEnd = (result) => {
     if (!result.destination) return;
-
+    
     const reorderedColumns = [...columns];
     const [removed] = reorderedColumns.splice(result.source.index, 1);
     reorderedColumns.splice(result.destination.index, 0, removed);
-
+    
     setColumns(reorderedColumns);
   };
 
@@ -47,11 +47,7 @@ function NewDashboard() {
                 <thead ref={provided.innerRef} {...provided.droppableProps}>
                   <tr className="bg-[#F5821F] text-white">
                     {columns.map((heading, index) => (
-                      <Draggable
-                        key={heading}
-                        draggableId={heading}
-                        index={index}
-                      >
+                      <Draggable key={heading} draggableId={heading} index={index}>
                         {(provided) => (
                           <th
                             ref={provided.innerRef}
@@ -77,15 +73,9 @@ function NewDashboard() {
           </DragDropContext>
           <tbody>
             {data.map((row, rowIndex) => (
-              <tr
-                key={row.ID}
-                className="odd:bg-gray-50 even:bg-white hover:bg-gray-100"
-              >
+              <tr key={row.ID} className="odd:bg-gray-50 even:bg-white hover:bg-gray-100">
                 {columns.map((col, colIndex) => (
-                  <td
-                    key={colIndex}
-                    className="px-3 py-2 text-sm text-gray-800"
-                  >
+                  <td key={colIndex} className="px-3 py-2 text-sm text-gray-800">
                     {row[col]}
                   </td>
                 ))}
@@ -98,4 +88,6 @@ function NewDashboard() {
   );
 }
 
-export default NewDashboard;
+
+
+export default NewDashboard
